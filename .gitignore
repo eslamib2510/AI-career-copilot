@@ -2,3 +2,6 @@ venv/
 __pycache__/
 uploads/
 *.pyc
+
+data/resume_dataset.csv
+data/jobs.csv
