@@ -1,43 +1,84 @@
-from data_loader import jobs_df
+
+# ====================================
+# REQUIRED SKILLS DATABASE
+# ====================================
+
+required_skills = {
+
+    "Machine Learning Engineer": [
+
+        "Python",
+        "Machine Learning",
+        "Deep Learning",
+        "TensorFlow",
+        "NLP",
+        "AI"
+    ],
+
+    "Data Scientist": [
+
+        "Python",
+        "SQL",
+        "Statistics",
+        "Machine Learning",
+        "Data Analysis"
+    ],
+
+    "AI Engineer": [
+
+        "Python",
+        "PyTorch",
+        "Transformers",
+        "Deep Learning",
+        "NLP"
+    ],
+
+    "Backend Developer": [
+
+        "Python",
+        "FastAPI",
+        "APIs",
+        "SQL",
+        "Backend Development"
+    ],
+
+    "Data Analyst": [
+
+        "Excel",
+        "SQL",
+        "Power BI",
+        "Statistics",
+        "Data Visualization"
+    ]
+}
 
 # ====================================
 # SKILL GAP ANALYSIS
 # ====================================
 
 def analyze_skill_gap(
+
     detected_skills,
+
     recommended_jobs
 ):
 
-    required_skills = set()
+    missing_skills = set()
 
-    # Collect skills from recommended jobs
     for job in recommended_jobs:
 
-        matched_jobs = jobs_df[
-            jobs_df["title"] == job["title"]
-        ]
+        job_title = job["title"]
 
-        for _, row in matched_jobs.iterrows():
+        job_required_skills = required_skills.get(
+            job_title,
+            []
+        )
 
-            skill = row["skill_name"]
+        for skill in job_required_skills:
 
-            if isinstance(skill, str):
+            if skill not in detected_skills:
 
-                required_skills.add(
-                    skill.lower()
-                )
-
-    # User skills
-    user_skills = set(
-        [
-            skill.lower()
-
-            for skill in detected_skills
-        ]
-    )
-
-    # Missing skills
-    missing_skills = required_skills - user_skills
+                missing_skills.add(skill)
 
     return list(missing_skills)
+
