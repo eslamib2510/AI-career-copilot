@@ -1,82 +1,130 @@
-from sklearn.feature_extraction.text import (
-    TfidfVectorizer
-)
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-from sklearn.metrics.pairwise import (
-    cosine_similarity
-)
+# ====================================
+# SAMPLE JOB DATABASE
+# ====================================
 
-from data_loader import jobs_df
+jobs = [
 
-# =========================
-# CLEAN DATA
-# =========================
+    {
+        "title": "Machine Learning Engineer",
+        "company": "Google",
+        "location": "Remote",
+        "salary": "$120,000",
 
-jobs_df = jobs_df.dropna(
-    subset=["description"]
-)
+        "description":
+        "Python Machine Learning Deep Learning TensorFlow NLP AI"
+    },
 
-jobs_df = jobs_df.drop_duplicates(
-    subset=["job_id"]
-)
+    {
+        "title": "Data Scientist",
+        "company": "Microsoft",
+        "location": "Remote",
+        "salary": "$110,000",
 
-# =========================
-# TF-IDF
-# =========================
+        "description":
+        "Python Data Analysis SQL Machine Learning Statistics"
+    },
 
-vectorizer = TfidfVectorizer(
-    stop_words="english",
-    max_features=5000
-)
+    {
+        "title": "AI Engineer",
+        "company": "OpenAI",
+        "location": "Remote",
+        "salary": "$150,000",
 
-job_vectors = vectorizer.fit_transform(
-    jobs_df["description"]
-)
+        "description":
+        "LLM NLP Deep Learning Transformers PyTorch AI"
+    },
 
-# =========================
-# SEARCH FUNCTION
-# =========================
+    {
+        "title": "Backend Developer",
+        "company": "Amazon",
+        "location": "Hybrid",
+        "salary": "$100,000",
+
+        "description":
+        "Python APIs SQL FastAPI Backend Development"
+    },
+
+    {
+        "title": "Data Analyst",
+        "company": "IBM",
+        "location": "On-site",
+        "salary": "$90,000",
+
+        "description":
+        "Excel SQL Power BI Data Visualization Statistics"
+    }
+
+]
+
+# ====================================
+# SEMANTIC MATCHING
+# ====================================
 
 def semantic_job_search(
     resume_text
 ):
 
-    resume_vector = vectorizer.transform(
-        [resume_text]
+    job_descriptions = [
+
+        job["description"]
+
+        for job in jobs
+    ]
+
+    corpus = [
+
+        resume_text
+
+    ] + job_descriptions
+
+    vectorizer = TfidfVectorizer()
+
+    tfidf_matrix = vectorizer.fit_transform(
+        corpus
     )
 
-    similarities = cosine_similarity(
-        resume_vector,
-        job_vectors
+    similarity_scores = cosine_similarity(
+
+        tfidf_matrix[0:1],
+
+        tfidf_matrix[1:]
+
     )[0]
 
-    top_indices = similarities.argsort()[-10:][::-1]
+    recommended_jobs = []
 
-    recommendations = []
+    for idx, score in enumerate(
+        similarity_scores
+    ):
 
-    for idx in top_indices:
-
-        job = jobs_df.iloc[idx]
-
-        recommendations.append({
+        recommended_jobs.append({
 
             "title":
-                job["title"],
+            jobs[idx]["title"],
 
             "company":
-                job["company_name"],
+            jobs[idx]["company"],
 
             "location":
-                job["location"],
+            jobs[idx]["location"],
 
             "salary":
-                job["normalized_salary"],
+            jobs[idx]["salary"],
 
             "match":
-                round(
-                    similarities[idx] * 100,
-                    2
-                )
+            round(score * 100, 2)
         })
 
-    return recommendations
+    recommended_jobs = sorted(
+
+        recommended_jobs,
+
+        key=lambda x: x["match"],
+
+        reverse=True
+    )
+
+    return recommended_jobs[:5]
